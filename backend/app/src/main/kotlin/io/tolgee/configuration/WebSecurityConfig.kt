@@ -36,13 +36,14 @@ import org.springframework.context.annotation.Lazy
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.security.config.Customizer
-import org.springframework.security.config.annotation.ObjectPostProcessor
+import org.springframework.security.config.ObjectPostProcessor
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.intercept.AuthorizationFilter
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.header.HeaderWriterFilter
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
@@ -106,6 +107,12 @@ class WebSecurityConfig(
         headers.referrerPolicy {
           it.policy(ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
         }
+        headers.addObjectPostProcessor(object : ObjectPostProcessor<HeaderWriterFilter> {
+          override fun <F : HeaderWriterFilter?> postProcess(filter: F): F {
+            filter?.setShouldWriteHeadersEagerly(true)
+            return filter
+          }
+        })
       }.build()
   }
 

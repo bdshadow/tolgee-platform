@@ -9,6 +9,7 @@ import io.tolgee.testing.annotations.ProjectJWTAuthTestMethod
 import io.tolgee.testing.assertions.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.boot.test.context.SpringBootTest
@@ -34,6 +35,20 @@ class V2ExportAllFormatsTest : ProjectAuthControllerTest("/v2/projects/") {
   @AfterEach
   fun cleanup() {
     testData?.let { testDataService.cleanTestData(it.root) }
+  }
+  
+  @RepeatedTest(100)
+  @ProjectJWTAuthTestMethod
+  fun `check for ConcurrentModificationException - spring bug`() {
+    // This test is to ensure that no ConcurrentModificationException is thrown during export
+    val mvcResult = performProjectAuthGet("export?format=${ExportFormat.JSON}")
+      .andIsOk
+      .andDo { obj: MvcResult -> obj.asyncResult }
+      .andReturn()
+
+    // Verify we get some content back
+    val responseContent = mvcResult.response.contentAsByteArray
+    assertThat(responseContent).isNotEmpty()
   }
 
   @ParameterizedTest
