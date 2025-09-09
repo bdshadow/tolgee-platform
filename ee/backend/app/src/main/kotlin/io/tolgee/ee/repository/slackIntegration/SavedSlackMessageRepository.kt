@@ -13,13 +13,6 @@ import java.util.*
 @Repository
 @Lazy
 interface SavedSlackMessageRepository : JpaRepository<SavedSlackMessage, Long> {
-  @Modifying
-  @Query(
-    """
-    delete from SavedSlackMessage sm where sm.createdAt < :cutoff
-    """,
-  )
-  fun deleteOlderThan(cutoff: Date)
 
   @Query(
     """
